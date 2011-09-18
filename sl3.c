@@ -116,12 +116,19 @@ void putback_token(char *token) { token_la = token; la_valid = 1; }
 
 char *gettoken() {
   int ch;
+  char comment=0;
 
   bufused = 0;
   if(la_valid) { la_valid = 0; return token_la; }
   do {
     if((ch = getc(ifp)) == EOF) exit(0);
-  } while(isspace(ch));
+
+    if(ch == ';')      comment = 1;
+    if(ch == '\n')     comment = 0;
+
+  } while(isspace(ch) || comment);
+
+
   add_to_buf(ch);
   if(strchr("()\'", ch)) return buf2str();
   for(;;) {
@@ -141,6 +148,7 @@ obj *readobj() {
   token = gettoken();
   if(!strcmp(token, "(")) return readlist();
   if(!strcmp(token, "\'")) return cons(quote, cons(readobj(), nil));
+
   if(token[strspn(token, "0123456789")] == '\0'
      || (token[0] == '-' && strlen(token) > 1)) 
     return mkint(atoi(token));
