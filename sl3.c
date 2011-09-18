@@ -26,6 +26,7 @@
 #define error(X) do { fprintf(stderr, "%s\n", X); exit(1); } while (0)
 
 int line_num = 1;
+int total_malloc = 0;
 
 /*** List Structured Memory ***/
 enum otype { INT, SYM, CONS, PROC, PRIMOP };
@@ -87,7 +88,10 @@ obj *omake(enum otype type, int count, ...) {
   va_list ap;
   int i;
   va_start(ap, count);
-  ret = (obj *) malloc(sizeof(obj) + (count - 1)*sizeof(obj *));
+  int object_size = sizeof(obj) + (count - 1)*sizeof(obj *);
+  total_malloc += object_size;
+
+  ret = (obj *) malloc(object_size);
   ret->type = type;
   ret->line_num = line_num;
   for(i = 0; i < count; i++) ret->p[i] = va_arg(ap, obj *);
@@ -145,6 +149,8 @@ char *buf2str()          { buf[bufused++] = '\0'; return strdup(buf); }
 void setinput(FILE *fp)  { ifp = fp; }
 void putback_token(char *token) { token_la = token; la_valid = 1; }
 
+void myexit(int code);
+
 char *gettoken() {
   int ch;
   char comment=0;
@@ -152,7 +158,7 @@ char *gettoken() {
   bufused = 0;
   if(la_valid) { la_valid = 0; return token_la; }
   do {
-    if((ch = getc(ifp)) == EOF) exit(0);
+    if((ch = getc(ifp)) == EOF) myexit(0);
 
     if(ch == ';')      comment = 1;
     if(ch == '\n') {
@@ -166,7 +172,7 @@ char *gettoken() {
   add_to_buf(ch);
   if(strchr("()\'", ch)) return buf2str();
   for(;;) {
-    if((ch = getc(ifp)) == EOF) exit(0);
+    if((ch = getc(ifp)) == EOF) myexit(0);
     if(strchr("()\'", ch) || isspace(ch)) {
       ungetc(ch, ifp);
       return buf2str();
@@ -421,4 +427,9 @@ int main() {
     printf("\n");
   }
   return 0;
+}
+
+void myexit(int code) {
+  fprintf(stderr, "%d bytes left hanging\n", total_malloc);
+  exit(code);
 }
