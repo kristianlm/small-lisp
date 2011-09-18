@@ -325,8 +325,6 @@ obj *prim_ge(obj *args) {
 obj *prim_le(obj *args) {
   return intval(car(args)) <= intval(car(cdr(args))) ? tee : nil;
 }
-
-
 obj *prim_numeq(obj *args) {
   return intval(car(args)) == intval(car(cdr(args))) ? tee : nil;
 }
@@ -334,6 +332,15 @@ obj *prim_numeq(obj *args) {
 obj *prim_cons(obj *args) { return cons(car(args), car(cdr(args))); }
 obj *prim_car(obj *args)  { return car(car(args)); }
 obj *prim_cdr(obj *args)  { return cdr(car(args)); }
+
+
+/*** Helpers *****/
+
+obj *prim_print(obj *args) {
+  writeobj(stdout, args);
+  printf("\n");
+  return nil;
+}
 
 /*** Initialization ***/
 void init_sl3() {
@@ -363,6 +370,8 @@ void init_sl3() {
   extend_top(intern("cons"), mkprimop(prim_cons));
   extend_top(intern("car"),  mkprimop(prim_car));
   extend_top(intern("cdr"),  mkprimop(prim_cdr));
+
+  extend_top(intern("print"),  mkprimop(prim_print));
 }
 
 /*** Main Driver ***/
