@@ -244,30 +244,30 @@ obj *eval(obj *exp, obj *env) {
         setcdr(pair, newval);
         return newval;
       }
-                if(car(exp) == s_begin) {
-                  exp = cdr(exp);
-                  if(exp == nil) return nil;
-                  for(;;) {
-                    if(cdr(exp) == nil) {
-                      exp = car(exp);
-                      goto eval_start;
-                    }
-                    eval(car(exp), env);
-                    exp = cdr(exp);
-                  }
-                }
-                proc = eval(car(exp), env);
-                vals = evlis(cdr(exp), env);
-                if(proc->type == PRIMOP)
-                  return (*primopval(proc))(vals);
-                if(proc->type == PROC) {
-                  /* For dynamic scope, use env instead of procenv(proc) */
-                  env = multiple_extend(procenv(proc), procargs(proc), vals);
-                  exp = cons(s_begin, proccode(proc));
-                  goto eval_start;
-                }
-                error("Bad PROC type");
-
+      if(car(exp) == s_begin) {
+        exp = cdr(exp);
+        if(exp == nil) return nil;
+        for(;;) {
+          if(cdr(exp) == nil) {
+            exp = car(exp);
+            goto eval_start;
+          }
+          eval(car(exp), env);
+          exp = cdr(exp);
+        }
+      }
+      proc = eval(car(exp), env);
+      vals = evlis(cdr(exp), env);
+      if(proc->type == PRIMOP)
+        return (*primopval(proc))(vals);
+      if(proc->type == PROC) {
+        /* For dynamic scope, use env instead of procenv(proc) */
+        env = multiple_extend(procenv(proc), procargs(proc), vals);
+        exp = cons(s_begin, proccode(proc));
+        goto eval_start;
+      }
+      printf("Bad PROC type\n");
+      return nil;
     case PRIMOP: return exp;
     case PROC:   return exp;
   }
