@@ -41,7 +41,7 @@ obj *all_symbols, *top_env, *nil, *tee, *quote,
 #define setcar(X,Y)           (((X)->p[0]) = (Y))
 #define setcdr(X,Y)           (((X)->p[1]) = (Y))
 #define mkint(X)              omake(INT, 1, (obj *)(X))
-#define intval(X)             ((int)((X)->p[0]))
+#define intval(X)             ((int)((X)->type == INT ? (X)->p[0] : 0)) // intval for INT only
 #define mksym(X)              omake(SYM, 1, (obj *)(X))
 #define symname(X)            ((char *)((X)->p[0]))
 #define mkprimop(X)           omake(PRIMOP, 1, (obj *)(X))
