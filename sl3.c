@@ -36,8 +36,35 @@ obj *all_symbols, *top_env, *nil, *tee, *quote,
     *s_if, *s_lambda, *s_define, *s_setb, *s_begin;
 
 #define cons(X, Y)            omake(CONS, 2, (X), (Y))
-#define car(X)                ((X)->p[0])
-#define cdr(X)                ((X)->p[1])
+
+inline obj *car(obj *X) {
+  if(X == 0) {
+    fprintf(stderr, "warning: car argument null on line %d\n", line_num);
+    return nil;
+  }
+  if(X == nil)
+    return nil;
+  if(X->type != CONS) {
+    fprintf(stderr, "warning: car argument not a list (%d) on line %d\n", X->p[0], X->line_num);
+    return nil;
+  }
+  return X->p[0];
+}
+
+inline obj *cdr(obj *X) {
+  if(X == nil)
+    return nil;
+  if(X->type != CONS) {
+    fprintf(stderr, "warning: cdr argument not a list on line %d\n", X->line_num); 
+    return nil;    
+  }
+  if(X->p[1] == 0) {
+    fprintf(stderr, "error: cdr list element is zero-pointer at %d\n", X->line_num);
+    return nil;
+  }
+  return X->p[1];
+}
+
 #define setcar(X,Y)           (((X)->p[0]) = (Y))
 #define setcdr(X,Y)           (((X)->p[1]) = (Y))
 #define mkint(X)              omake(INT, 1, (obj *)(X))
