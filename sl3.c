@@ -33,7 +33,7 @@ typedef struct obj {
 } obj;
 typedef obj * (*primop)(obj *);
 obj *all_symbols, *top_env, *nil, *tee, *quote, 
-    *s_if, *s_lambda, *s_define, *s_setb;
+    *s_if, *s_lambda, *s_define, *s_setb, *s_begin;
 
 #define cons(X, Y)            omake(CONS, 2, (X), (Y))
 #define car(X)                ((X)->p[0])
@@ -190,26 +190,27 @@ void writeobj(FILE *ofp, obj *op) {
   }
 }
 
-/*** Evaluator (Eval/Apply) ***/
+/*** Evaluator (Eval/no Apply) ***/
 obj *evlis(obj *exps, obj *env);
-obj *progn(obj *exps, obj *env);
-obj *apply(obj *proc, obj *vals, obj *env);
 
 obj *eval(obj *exp, obj *env) {
-  obj *tmp;
+  obj *tmp, *proc, *vals;
+
+  eval_start:
   
   if(exp == nil) return nil;
 
   switch(exp->type) {
-    case INT: return exp;
+    case INT:   return exp;
     case SYM:   tmp = assoc(exp, env);
                 if(tmp == nil) error("Unbound symbol");
                 return cdr(tmp);
     case CONS:  if(car(exp) == s_if) {
 		  if(eval(car(cdr(exp)), env) != nil)
-		    return eval(car(cdr(cdr(exp))), env);
+		    exp = car(cdr(cdr(exp)));
 		  else
-		    return eval(car(cdr(cdr(cdr(exp)))), env);
+		    exp = car(cdr(cdr(cdr(exp))));
+                  goto eval_start;
 		}
 		if(car(exp) == s_lambda)
 		  return mkproc(car(cdr(exp)), cdr(cdr(exp)), env);
@@ -224,7 +225,29 @@ obj *eval(obj *exp, obj *env) {
 		  setcdr(pair, newval);
 		  return newval;
 		}
-		return apply(eval(car(exp), env), evlis(cdr(exp), env), env);
+                if(car(exp) == s_begin) {
+                  exp = cdr(exp);
+                  if(exp == nil) return nil;
+                  for(;;) {
+                    if(cdr(exp) == nil) {
+                      exp = car(exp);
+                      goto eval_start;
+                    }
+                    eval(car(exp), env);
+                    exp = cdr(exp);
+                  }
+                }
+                proc = eval(car(exp), env);
+                vals = evlis(cdr(exp), env);
+                if(proc->type == PRIMOP)
+                  return (*primopval(proc))(vals);
+                if(proc->type == PROC) {
+                  /* For dynamic scope, use env instead of procenv(proc) */
+                  env = multiple_extend(procenv(proc), procargs(proc), vals);
+                  exp = cons(s_begin, proccode(proc));
+                  goto eval_start;
+                }
+                error("Bad PROC type");
     case PRIMOP: return exp;
     case PROC:   return exp;
   }
@@ -236,29 +259,6 @@ obj *evlis(obj *exps, obj *env) {
   if(exps == nil) return nil;
   return cons(eval(car(exps), env), 
               evlis(cdr(exps), env));
-}
-
-obj *progn(obj *exps, obj *env) {
-  if(exps == nil) return nil;
-  for(;;) {
-    if(cdr(exps) == nil)
-      return eval(car(exps), env);
-    eval(car(exps), env);
-    exps = cdr(exps);
-  }
-}
-
-obj *apply(obj *proc, obj *vals, obj *env) {
-  if(proc->type == PRIMOP)
-    return (*primopval(proc))(vals);
-  if(proc->type == PROC) {
-    /* For dynamic scope, use env instead of procenv(proc) */
-    return progn(proccode(proc), 
-                 multiple_extend(procenv(proc), procargs(proc), vals));
-  }
-  error("Bad argument to apply");
-  /* Not reached */
-  return nil; 
 }
 
 /*** Primitives ***/
@@ -277,7 +277,7 @@ obj *prim_sub(obj *args) {
 }
 
 obj *prim_prod(obj *args) {
-  int prod;
+  int prod = 1;
   for(prod = 1; !isnil(args); prod *= intval(car(args)), args = cdr(args));
   return mkint(prod);
 }
@@ -302,6 +302,7 @@ void init_sl3() {
   s_lambda = intern("lambda");
   s_define = intern("define");
   s_setb   = intern("set!");
+  s_begin  = intern("begin");
   extend_top(intern("+"), mkprimop(prim_sum));
   extend_top(intern("-"), mkprimop(prim_sub));
   extend_top(intern("*"), mkprimop(prim_prod));
