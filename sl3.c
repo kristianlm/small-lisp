@@ -141,7 +141,9 @@ obj *readobj() {
   token = gettoken();
   if(!strcmp(token, "(")) return readlist();
   if(!strcmp(token, "\'")) return cons(quote, cons(readobj(), nil));
-  if(token[strspn(token, "0123456789")] == '\0') return mkint(atoi(token));
+  if(token[strspn(token, "0123456789")] == '\0'
+     || (token[0] == '-' && strlen(token) > 1)) 
+    return mkint(atoi(token));
   return intern(token);
 }
 
