@@ -205,7 +205,12 @@ obj *eval(obj *exp, obj *env) {
   switch(exp->type) {
     case INT: return exp;
     case SYM:   tmp = assoc(exp, env);
-                if(tmp == nil) error("Unbound symbol");
+      if(tmp == nil) {
+        fprintf(stderr, "Unbound symbol ");
+        writeobj(stderr, exp);
+        fprintf(stderr, "\n");
+        return nil;
+      }
                 return cdr(tmp);
     case CONS:  if(car(exp) == s_if) {
 		  if(eval(car(cdr(exp)), env) != nil)
@@ -258,7 +263,9 @@ obj *apply(obj *proc, obj *vals, obj *env) {
     return progn(proccode(proc), 
                  multiple_extend(procenv(proc), procargs(proc), vals));
   }
-  error("Bad argument to apply");
+  fprintf(stderr, "Bad argument to apply");
+  writeobj(stderr, proc);
+  fprintf(stderr, "\n");
   /* Not reached */
   return nil; 
 }
