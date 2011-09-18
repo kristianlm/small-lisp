@@ -25,10 +25,13 @@
 
 #define error(X) do { fprintf(stderr, "%s\n", X); exit(1); } while (0)
 
+int line_num = 1;
+
 /*** List Structured Memory ***/
 enum otype { INT, SYM, CONS, PROC, PRIMOP };
 typedef struct obj {
   enum otype type;
+  int line_num;
   struct obj *p[1];
 } obj;
 typedef obj * (*primop)(obj *);
@@ -86,6 +89,7 @@ obj *omake(enum otype type, int count, ...) {
   va_start(ap, count);
   ret = (obj *) malloc(sizeof(obj) + (count - 1)*sizeof(obj *));
   ret->type = type;
+  ret->line_num = line_num;
   for(i = 0; i < count; i++) ret->p[i] = va_arg(ap, obj *);
   va_end(ap);
   return ret;
@@ -151,7 +155,10 @@ char *gettoken() {
     if((ch = getc(ifp)) == EOF) exit(0);
 
     if(ch == ';')      comment = 1;
-    if(ch == '\n')     comment = 0;
+    if(ch == '\n') {
+      comment = 0;
+      line_num++;
+    }
 
   } while(isspace(ch) || comment);
 
