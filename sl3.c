@@ -337,7 +337,11 @@ obj *prim_cdr(obj *args)  { return cdr(car(args)); }
 /*** Helpers *****/
 
 obj *prim_print(obj *args) {
-  writeobj(stdout, args);
+  while(!isnil(args)) {
+    writeobj(stdout, car(args));
+    args = cdr(args);
+    printf(" ");
+  }
   printf("\n");
   return nil;
 }
