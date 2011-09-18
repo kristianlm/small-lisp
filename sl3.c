@@ -299,6 +299,17 @@ obj *prim_prod(obj *args) {
   for(prod = 1; !isnil(args); prod *= intval(car(args)), args = cdr(args));
   return mkint(prod);
 }
+obj *prim_divide(obj *args) {
+  int prod = intval(car(args));
+  args = cdr(args);
+  while(!isnil(args)) {
+    prod /= intval(car(args));
+    args = cdr(args);
+  }
+  //  printf("divide %d %d", intval(car(args)), intval(car((car(args)))));
+  //  for(prod = intval(car(args)); !isnil(args); prod = intval(car(cdr(args))), args = cdr(args));
+  return mkint(prod);
+}
 
 obj *prim_gt(obj *args) {
   return intval(car(args)) > intval(car(cdr(args))) ? tee : nil;
@@ -338,6 +349,7 @@ void init_sl3() {
   extend_top(intern("+"), mkprimop(prim_sum));
   extend_top(intern("-"), mkprimop(prim_sub));
   extend_top(intern("*"), mkprimop(prim_prod));
+  extend_top(intern("/"), mkprimop(prim_divide));
   extend_top(intern("="), mkprimop(prim_numeq));
 
   extend_top(intern(">"), mkprimop(prim_gt));
