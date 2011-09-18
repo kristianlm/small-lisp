@@ -211,27 +211,28 @@ obj *eval(obj *exp, obj *env) {
         fprintf(stderr, "\n");
         return nil;
       }
-                return cdr(tmp);
-    case CONS:  if(car(exp) == s_if) {
-		  if(eval(car(cdr(exp)), env) != nil)
-		    return eval(car(cdr(cdr(exp))), env);
-		  else
-		    return eval(car(cdr(cdr(cdr(exp)))), env);
-		}
-		if(car(exp) == s_lambda)
-		  return mkproc(car(cdr(exp)), cdr(cdr(exp)), env);
-		if(car(exp) == quote)
-		  return car(cdr(exp));
-		if(car(exp) == s_define)
-		  return(extend_top(car(cdr(exp)),
-		                    eval(car(cdr(cdr(exp))), env)));
-		if(car(exp) == s_setb) {
-		  obj *pair   = assoc(car(cdr(exp)), env);
-		  obj *newval = eval(car(cdr(cdr(exp))), env);
-		  setcdr(pair, newval);
-		  return newval;
-		}
-		return apply(eval(car(exp), env), evlis(cdr(exp), env), env);
+      return cdr(tmp);
+    case CONS: 
+      if(car(exp) == s_if) {
+        if(eval(car(cdr(exp)), env) != nil)
+          return eval(car(cdr(cdr(exp))), env);
+        else
+          return eval(car(cdr(cdr(cdr(exp)))), env);
+      }
+      if(car(exp) == s_lambda)
+        return mkproc(car(cdr(exp)), cdr(cdr(exp)), env);
+      if(car(exp) == quote)
+        return car(cdr(exp));
+      if(car(exp) == s_define)
+        return(extend_top(car(cdr(exp)),
+                          eval(car(cdr(cdr(exp))), env)));
+      if(car(exp) == s_setb) {
+        obj *pair   = assoc(car(cdr(exp)), env);
+        obj *newval = eval(car(cdr(cdr(exp))), env);
+        setcdr(pair, newval);
+        return newval;
+      }
+      return apply(eval(car(exp), env), evlis(cdr(exp), env), env);
     case PRIMOP: return exp;
     case PROC:   return exp;
   }
@@ -291,6 +292,21 @@ obj *prim_prod(obj *args) {
   return mkint(prod);
 }
 
+obj *prim_gt(obj *args) {
+  return intval(car(args)) > intval(car(cdr(args))) ? tee : nil;
+}
+
+obj *prim_lt(obj *args) {
+  return intval(car(args)) < intval(car(cdr(args))) ? tee : nil;
+}
+obj *prim_ge(obj *args) {
+  return intval(car(args)) >= intval(car(cdr(args))) ? tee : nil;
+}
+obj *prim_le(obj *args) {
+  return intval(car(args)) <= intval(car(cdr(args))) ? tee : nil;
+}
+
+
 obj *prim_numeq(obj *args) {
   return intval(car(args)) == intval(car(cdr(args))) ? tee : nil;
 }
@@ -315,6 +331,13 @@ void init_sl3() {
   extend_top(intern("-"), mkprimop(prim_sub));
   extend_top(intern("*"), mkprimop(prim_prod));
   extend_top(intern("="), mkprimop(prim_numeq));
+
+  extend_top(intern(">"), mkprimop(prim_gt));
+  extend_top(intern(">="), mkprimop(prim_ge));
+
+  extend_top(intern("<"), mkprimop(prim_lt));
+  extend_top(intern("<="), mkprimop(prim_le));
+
   extend_top(intern("cons"), mkprimop(prim_cons));
   extend_top(intern("car"),  mkprimop(prim_car));
   extend_top(intern("cdr"),  mkprimop(prim_cdr));
