@@ -296,6 +296,7 @@ obj *prim_sub(obj *args) {
 
 obj *prim_prod(obj *args) {
   int prod;
+
   for(prod = 1; !isnil(args); prod *= intval(car(args)), args = cdr(args));
   return mkint(prod);
 }
@@ -306,8 +307,7 @@ obj *prim_divide(obj *args) {
     prod /= intval(car(args));
     args = cdr(args);
   }
-  //  printf("divide %d %d", intval(car(args)), intval(car((car(args)))));
-  //  for(prod = intval(car(args)); !isnil(args); prod = intval(car(cdr(args))), args = cdr(args));
+
   return mkint(prod);
 }
 
