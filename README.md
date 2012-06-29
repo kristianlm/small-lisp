@@ -1,7 +1,8 @@
 # Mini-Lisp in C
 
-This is a very small and limited Lisp interpreter taken from
-[here](http://www.sonoma.edu/users/l/luvisi/sl3.c). It's lightweightness
+This is a very small and limited Lisp interpreter written by 
+[Andru Luvisi](http://www.sonoma.edu/users/l/luvisi/sl3.c). 
+Its lightweightness
 is very useful in learning how Lisp and Scheme internals work!
 
 It's a single C source file which you can run like this:
