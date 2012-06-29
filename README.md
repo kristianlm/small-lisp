@@ -1,14 +1,16 @@
+# Mini-Lisp in C
 
-This very small (and limited) lisp interpreter is teaching me LISP, and allowing me to
-discover how wonderfully simple LISP is.
+This is a very small and limited Lisp interpreter taken from
+[here](http://www.sonoma.edu/users/l/luvisi/sl3.c). It's lightweightness
+is very useful in learning how Lisp and Scheme internals work!
 
-It's a single .c file which you can run like this:
+It's a single C source file which you can run like this:
 
-    # clone this project and cd into it
     gcc sl3.c && ((cat corelib.lisp; cat /dev/stdin) | ./a.out )
-    # this will compile the interpreter, load the corelib and get you ready with a "repl" 
-    # where you can experiment.
-    
+
+This will compile the interpreter, 
+load the corelib and get you ready 
+with a "repl" where you can experiment.
 Once the interpreter is running, you could try
 
     (+ 1 1)
