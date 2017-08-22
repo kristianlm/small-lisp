@@ -41,7 +41,7 @@ obj *all_symbols, *top_env, *nil, *tee, *quote,
 
 #define cons(X, Y)            omake(CONS, 2, (X), (Y))
 
-inline obj *car(obj *X) {
+obj *car(obj *X) {
   if(X == 0) {
     fprintf(stderr, "warning: car argument null on line %d\n", line_num);
     return nil;
@@ -55,7 +55,7 @@ inline obj *car(obj *X) {
   return X->p[0];
 }
 
-inline obj *cdr(obj *X) {
+obj *cdr(obj *X) {
   if(X == nil)
     return nil;
   if(X->type != CONS) {
